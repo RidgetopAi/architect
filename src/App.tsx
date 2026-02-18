@@ -5,6 +5,8 @@ import { ConversationPanel } from "./components/ConversationPanel";
 import { Header } from "./components/Header";
 import { serializeCanvas, writeToCanvas, clearAiElements } from "./lib/canvas";
 
+const AI_GROUP_PREFIX = "ai-";
+
 const CANVAS_DIR = "canvases";
 const DEFAULT_CANVAS = "default.excalidraw.json";
 
@@ -105,7 +107,16 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen flex-col">
-      <Header isSaving={isSaving} onSave={saveCanvas} />
+      <Header
+        isSaving={isSaving}
+        onSave={saveCanvas}
+        onClearAi={() => api && clearAiElements(api)}
+        hasAiElements={
+          api?.getSceneElements().some((el) =>
+            el.groupIds?.some((g) => g.startsWith(AI_GROUP_PREFIX))
+          ) ?? false
+        }
+      />
       <div className="flex flex-1 overflow-hidden">
         <main className="flex-1">
           <Canvas onApiReady={handleApiReady} />
