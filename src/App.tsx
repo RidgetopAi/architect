@@ -10,21 +10,23 @@ const DEFAULT_CANVAS = "default.excalidraw.json";
 
 export default function App() {
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const [api, setApi] = useState<ExcalidrawImperativeAPI | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleApiReady = useCallback((api: ExcalidrawImperativeAPI) => {
-    apiRef.current = api;
-    loadCanvas(api);
+  const handleApiReady = useCallback((excalidrawApi: ExcalidrawImperativeAPI) => {
+    apiRef.current = excalidrawApi;
+    setApi(excalidrawApi);
+    loadCanvas(excalidrawApi);
 
     // Expose dev tools on window for round-trip testing
     if (import.meta.env.DEV) {
       (window as Record<string, unknown>).__architect = {
-        api,
-        serialize: () => serializeCanvas(api.getSceneElements()),
+        api: excalidrawApi,
+        serialize: () => serializeCanvas(excalidrawApi.getSceneElements()),
         write: (skeletons: Parameters<typeof writeToCanvas>[1], mode?: "correction" | "annotation") =>
-          writeToCanvas(api, skeletons, mode),
-        clearAi: () => clearAiElements(api),
+          writeToCanvas(excalidrawApi, skeletons, mode),
+        clearAi: () => clearAiElements(excalidrawApi),
       };
     }
   }, []);
@@ -109,7 +111,7 @@ export default function App() {
           <Canvas onApiReady={handleApiReady} />
         </main>
         <aside className="w-80 border-l">
-          <ConversationPanel />
+          <ConversationPanel api={api} />
         </aside>
       </div>
     </div>
