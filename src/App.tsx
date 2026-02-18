@@ -3,6 +3,7 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { Canvas } from "./components/Canvas";
 import { ConversationPanel } from "./components/ConversationPanel";
 import { Header } from "./components/Header";
+import { serializeCanvas, writeToCanvas, clearAiElements } from "./lib/canvas";
 
 const CANVAS_DIR = "canvases";
 const DEFAULT_CANVAS = "default.excalidraw.json";
@@ -15,6 +16,17 @@ export default function App() {
   const handleApiReady = useCallback((api: ExcalidrawImperativeAPI) => {
     apiRef.current = api;
     loadCanvas(api);
+
+    // Expose dev tools on window for round-trip testing
+    if (import.meta.env.DEV) {
+      (window as Record<string, unknown>).__architect = {
+        api,
+        serialize: () => serializeCanvas(api.getSceneElements()),
+        write: (skeletons: Parameters<typeof writeToCanvas>[1], mode?: "correction" | "annotation") =>
+          writeToCanvas(api, skeletons, mode),
+        clearAi: () => clearAiElements(api),
+      };
+    }
   }, []);
 
   async function loadCanvas(api: ExcalidrawImperativeAPI) {
