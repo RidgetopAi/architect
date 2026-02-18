@@ -93,9 +93,9 @@ EOF
 ~/projects/architect/
 ├── canvases/           # Canvas files (.excalidraw.json)
 ├── src/
-│   ├── lib/canvas/     # Serializer, writer, interpreter
-│   ├── lib/ai/         # Model connector, correction renderer
-│   ├── components/     # React components (Canvas, Header, ConversationPanel)
-│   └── hooks/          # React hooks
-└── server/             # Vite dev API for save/load
+│   ├── lib/canvas/     # Serializer, writer
+│   ├── lib/amp.ts      # Amp headless connector
+│   └── components/     # React components (Canvas, Header, ConversationPanel)
+├── server/             # Vite dev API (save/load + amp subprocess)
+└── AGENTS.md           # Instructions for headless amp agent
 ```

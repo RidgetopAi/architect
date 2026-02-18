@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { Send, Loader2, Trash2 } from "lucide-react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-import { serializeCanvas, interpretCanvas, clearAiElements } from "@/lib/canvas";
-import { sendToModel, applyCorrections } from "@/lib/ai";
+import { clearAiElements, writeToCanvas, clearAiGroup } from "@/lib/canvas";
+import { sendToAmp } from "@/lib/amp";
+import type { AmpResponse } from "@/lib/amp";
 
 interface Message {
   role: "user" | "assistant" | "error";
@@ -11,6 +12,18 @@ interface Message {
 
 interface ConversationPanelProps {
   api: ExcalidrawImperativeAPI | null;
+}
+
+function applyCorrections(api: ExcalidrawImperativeAPI, response: AmpResponse) {
+  let totalElements = 0;
+  for (const c of response.corrections) {
+    if (c.action === "add" && c.elements?.length) {
+      totalElements += writeToCanvas(api, c.elements, "correction").elementCount;
+    } else if (c.action === "remove" && c.removeGroupId) {
+      clearAiGroup(api, c.removeGroupId);
+    }
+  }
+  return totalElements;
 }
 
 export function ConversationPanel({ api }: ConversationPanelProps) {
@@ -28,37 +41,29 @@ export function ConversationPanel({ api }: ConversationPanelProps) {
     setIsLoading(true);
 
     try {
-      const semantics = serializeCanvas(api.getSceneElements());
-      const description = interpretCanvas(semantics);
+      const elements = api.getSceneElements();
+      const canvasJson = JSON.stringify({ elements });
 
-      const response = await sendToModel({
-        canvasDescription: description,
-        userPrompt: userMessage,
-      });
-
-      const result = applyCorrections(api, response);
+      const response = await sendToAmp(userMessage, canvasJson);
+      const count = applyCorrections(api, response);
 
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `${result.message}\n\n(Added ${result.totalElements} elements)`,
+          content: count > 0
+            ? `${response.message} (${count} elements added)`
+            : response.message,
         },
       ]);
     } catch (e) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "error",
-          content: e instanceof Error ? e.message : "Unknown error",
-        },
+        { role: "error", content: e instanceof Error ? e.message : "Unknown error" },
       ]);
     } finally {
       setIsLoading(false);
-      setTimeout(
-        () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
-        50
-      );
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
     }
   }
 
@@ -68,10 +73,7 @@ export function ConversationPanel({ api }: ConversationPanelProps) {
         <h2 className="text-sm font-semibold">Conversation</h2>
         {messages.length > 0 && (
           <button
-            onClick={() => {
-              clearAiElements(api!);
-              setMessages([]);
-            }}
+            onClick={() => { clearAiElements(api!); setMessages([]); }}
             className="text-muted-foreground hover:text-foreground"
             title="Clear AI elements and chat"
           >
@@ -116,10 +118,7 @@ export function ConversationPanel({ api }: ConversationPanelProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
+              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
             placeholder="Ask about your diagram…"
             disabled={!api || isLoading}
