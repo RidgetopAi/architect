@@ -127,18 +127,28 @@ export function canvasApiPlugin(): Plugin {
 
           // amp may return text with the JSON embedded — extract it
           const jsonMatch = raw.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            // Model responded with plain text — wrap it as a message-only response
+          let parsed: { corrections?: unknown[]; message?: string } | null = null;
+
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {
+              // extracted text wasn't valid JSON — fall through
+            }
+          }
+
+          if (!parsed || !Array.isArray(parsed.corrections)) {
+            // Model responded with plain text or malformed JSON
             res.setHeader("Content-Type", "application/json");
             res.end(JSON.stringify({
               corrections: [],
-              message: raw.slice(0, 2000),
+              message: parsed?.message || raw.slice(0, 2000),
             }));
             return;
           }
 
           res.setHeader("Content-Type", "application/json");
-          res.end(jsonMatch[0]);
+          res.end(JSON.stringify(parsed));
         } catch (e) {
           res.statusCode = 500;
           res.end(e instanceof Error ? e.message : String(e));
