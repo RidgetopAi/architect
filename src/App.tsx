@@ -3,9 +3,7 @@ import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { Canvas } from "./components/Canvas";
 import { ConversationPanel } from "./components/ConversationPanel";
 import { Header } from "./components/Header";
-import { clearAiElements } from "./lib/canvas";
-
-const AI_GROUP_PREFIX = "ai-";
+import { clearAiElements, AI_GROUP_PREFIX } from "./lib/canvas";
 
 const CANVAS_DIR = "canvases";
 const DEFAULT_CANVAS = "default.excalidraw.json";

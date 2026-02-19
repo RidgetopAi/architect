@@ -18,7 +18,7 @@ export interface ElementSkeleton {
   groupIds?: string[];
 }
 
-const AI_GROUP_PREFIX = "ai-";
+export const AI_GROUP_PREFIX = "ai-";
 const AI_STROKE_COLOR = "#e67e22";
 const AI_ANNOTATION_COLOR = "#27ae60";
 

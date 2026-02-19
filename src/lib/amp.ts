@@ -1,6 +1,6 @@
 import type { ElementSkeleton } from "./canvas/writer";
 
-export interface CorrectionInstruction {
+interface CorrectionInstruction {
   action: "add" | "remove";
   elements?: ElementSkeleton[];
   removeGroupId?: string;

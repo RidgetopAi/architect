@@ -1,4 +1,2 @@
-export { serializeCanvas } from "./serializer";
-export type { CanvasSemantics, SemanticNode, SemanticConnection } from "./serializer";
-export { writeToCanvas, clearAiElements, clearAiGroup } from "./writer";
+export { writeToCanvas, clearAiElements, clearAiGroup, AI_GROUP_PREFIX } from "./writer";
 export type { ElementSkeleton } from "./writer";

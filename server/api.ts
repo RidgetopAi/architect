@@ -1,4 +1,5 @@
 import type { Plugin } from "vite";
+import type { IncomingMessage } from "http";
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
@@ -7,7 +8,7 @@ import { loadEnv } from "vite";
 const CANVAS_DIR = path.resolve(process.cwd(), "canvases");
 const PROJECT_DIR = process.cwd();
 
-function readBody(req: import("http").IncomingMessage): Promise<string> {
+function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let body = "";
     req.on("data", (chunk: Buffer) => (body += chunk.toString()));
