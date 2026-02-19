@@ -17,10 +17,14 @@ interface ConversationPanelProps {
 function applyCorrections(api: ExcalidrawImperativeAPI, response: AmpResponse) {
   let totalElements = 0;
   for (const c of response.corrections) {
-    if (c.action === "add" && c.elements?.length) {
-      totalElements += writeToCanvas(api, c.elements, "correction").elementCount;
-    } else if (c.action === "remove" && c.removeGroupId) {
-      clearAiGroup(api, c.removeGroupId);
+    try {
+      if (c.action === "add" && c.elements?.length) {
+        totalElements += writeToCanvas(api, c.elements, "correction").elementCount;
+      } else if (c.action === "remove" && c.removeGroupId) {
+        clearAiGroup(api, c.removeGroupId);
+      }
+    } catch (e) {
+      console.warn("Failed to apply correction:", e, c);
     }
   }
   return totalElements;
