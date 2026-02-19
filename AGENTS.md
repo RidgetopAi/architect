@@ -6,6 +6,8 @@ You receive the current canvas state as Excalidraw JSON piped via stdin. The use
 
 1. Respond with ONLY a single JSON object. No markdown fences, no text before or after.
 2. Do NOT use any tools. Do NOT read or write files. Just output JSON.
+3. If the user asks a question or requests feedback (not a canvas change), respond with an empty corrections array and put your answer in "message".
+4. EVERY response must be valid JSON matching the schema below — no exceptions.
 
 ## Response Schema
 

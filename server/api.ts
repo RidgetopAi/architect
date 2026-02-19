@@ -128,8 +128,12 @@ export function canvasApiPlugin(): Plugin {
           // amp may return text with the JSON embedded — extract it
           const jsonMatch = raw.match(/\{[\s\S]*\}/);
           if (!jsonMatch) {
-            res.statusCode = 502;
-            res.end(`amp returned non-JSON: ${raw.slice(0, 500)}`);
+            // Model responded with plain text — wrap it as a message-only response
+            res.setHeader("Content-Type", "application/json");
+            res.end(JSON.stringify({
+              corrections: [],
+              message: raw.slice(0, 2000),
+            }));
             return;
           }
 
