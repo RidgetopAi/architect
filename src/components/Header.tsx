@@ -1,9 +1,9 @@
-import { Save, Moon, Sun, Eraser, Check, Monitor, Smartphone } from "lucide-react";
+import { Save, Moon, Sun, Eraser, Check, AlertCircle, Monitor, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface HeaderProps {
   isSaving: boolean;
-  onSave: () => void;
+  onSave: () => Promise<boolean>;
   onClearAi?: () => void;
   hasAiElements?: boolean;
   desktopTemplate?: boolean;
@@ -25,7 +25,7 @@ export function Header({
   const [isDark, setIsDark] = useState(
     () => document.documentElement.classList.contains("dark")
   );
-  const [showSaved, setShowSaved] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
 
   useEffect(() => {
     if (isDark) {
@@ -35,10 +35,10 @@ export function Header({
     }
   }, [isDark]);
 
-  function handleSave() {
-    onSave();
-    setShowSaved(true);
-    setTimeout(() => setShowSaved(false), 2000);
+  async function handleSave() {
+    const ok = await onSave();
+    setSaveState(ok ? "saved" : "error");
+    setTimeout(() => setSaveState("idle"), 3000);
   }
 
   return (
@@ -95,15 +95,23 @@ export function Header({
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+          className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+            saveState === "error"
+              ? "text-red-500 bg-red-500/10"
+              : saveState === "saved"
+              ? "text-green-500 bg-green-500/10"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          }`}
           title="Save canvas (Ctrl+S)"
         >
-          {showSaved ? (
-            <Check className="h-3.5 w-3.5 text-green-500" />
+          {saveState === "saved" ? (
+            <Check className="h-3.5 w-3.5" />
+          ) : saveState === "error" ? (
+            <AlertCircle className="h-3.5 w-3.5" />
           ) : (
             <Save className="h-3.5 w-3.5" />
           )}
-          {isSaving ? "Saving…" : showSaved ? "Saved" : "Save"}
+          {isSaving ? "Saving…" : saveState === "saved" ? "Saved" : saveState === "error" ? "Save failed" : "Save"}
         </button>
 
         <button

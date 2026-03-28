@@ -36,9 +36,9 @@ export default function App() {
     }
   }
 
-  const saveCanvas = useCallback(async () => {
+  const saveCanvas = useCallback(async (): Promise<boolean> => {
     const api = apiRef.current;
-    if (!api) return;
+    if (!api) return false;
 
     setIsSaving(true);
     try {
@@ -55,13 +55,19 @@ export default function App() {
           gridSize: appState.gridSize,
         },
       };
-      await fetch(`/api/canvas/save`, {
+      const res = await fetch(`/api/canvas/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ filename: DEFAULT_CANVAS, data }),
       });
+      if (!res.ok) {
+        console.error("Save failed:", res.status, await res.text());
+        return false;
+      }
+      return true;
     } catch (e) {
       console.error("Save failed:", e);
+      return false;
     } finally {
       setIsSaving(false);
     }
